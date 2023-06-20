@@ -4,6 +4,7 @@ The docstrings of the `src_*` functions are adapted from the libsamplerate
 header file.
 """
 import os as _os
+import subprocess as _subprocess
 import sys as _sys
 from ctypes.util import find_library as _find_library
 
@@ -24,7 +25,11 @@ if _os.environ.get('READTHEDOCS') == 'True':
     _lib = MockLib()
 elif lib_filename is None:
     if _sys.platform == 'darwin':
-        lib_filename = '{}.dylib'.format(lib_basename)
+        cpuinfo = _subprocess.check_output(['sysctl', '-n', 'machdep.cpu.brand_string']).decode()
+        if cpuinfo.startswith('Apple'):
+            lib_filename = '{}-arm64.dylib'.format(lib_basename)
+        else:
+            lib_filename = '{}.dylib'.format(lib_basename)
     elif _sys.platform == 'win32':
         from platform import architecture
         lib_filename = '{}-{}.dll'.format(lib_basename, architecture()[0])
